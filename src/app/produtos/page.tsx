@@ -7,12 +7,11 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useStore } from "@/store/useStore";
-import { categories } from "@/data/products";
 import type { Product } from "@/store/useStore";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── Product Card (vertical, grid) ─── */
+/* --- Product Card (vertical, grid) --- */
 function ProductCardGrid({ product }: { product: Product }) {
   const addToCart = useStore((s) => s.addToCart);
   const decrementFromCart = useStore((s) => s.decrementFromCart);
@@ -42,7 +41,6 @@ function ProductCardGrid({ product }: { product: Product }) {
   };
 
   const handleOrder = () => {
-    // Add to cart then open WhatsApp with just this item
     addToCart(product);
     const link = generateWhatsAppLink();
     window.open(link, "_blank", "noopener,noreferrer");
@@ -117,7 +115,6 @@ function ProductCardGrid({ product }: { product: Product }) {
           <div className="mt-3 flex flex-col gap-2">
             {inCart ? (
               <>
-                {/* Qty controls */}
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={handleDecrement}
@@ -168,7 +165,6 @@ function ProductCardGrid({ product }: { product: Product }) {
                     </svg>
                   </button>
                 </div>
-                {/* Pedir button */}
                 <button
                   onClick={handleOrder}
                   className="w-full rounded-full py-2 text-xs font-semibold transition-all duration-200 hover:scale-105"
@@ -198,15 +194,22 @@ function ProductCardGrid({ product }: { product: Product }) {
   );
 }
 
-/* ─── Page ─── */
+/* --- Page --- */
 export default function ProdutosPage() {
   const storeProducts = useStore((s) => s.products);
+  const storeCategories = useStore((s) => s.categories);
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const pageRef = useRef<HTMLDivElement>(null);
 
+  const activeCategories = useMemo(() => {
+    const active = storeCategories.filter((c) => c.active).map((c) => c.name);
+    return ["Todos", ...active];
+  }, [storeCategories]);
+
   const filteredProducts = useMemo(() => {
     return storeProducts.filter((p) => {
+      if (!p.active) return false;
       const matchesCategory =
         activeCategory === "Todos" || p.category === activeCategory;
       const matchesSearch =
@@ -216,6 +219,11 @@ export default function ProdutosPage() {
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, searchQuery, storeProducts]);
+
+  const activeProductCount = useMemo(
+    () => storeProducts.filter((p) => p.active).length,
+    [storeProducts]
+  );
 
   useEffect(() => {
     if (!pageRef.current) return;
@@ -261,7 +269,7 @@ export default function ProdutosPage() {
                 className="text-xs transition-opacity hover:opacity-70"
                 style={{ color: "var(--muted)" }}
               >
-                ← Voltar para o inicio
+                Voltar para o inicio
               </a>
               <h1
                 className="page-title text-3xl font-bold tracking-tight md:text-4xl"
@@ -270,7 +278,7 @@ export default function ProdutosPage() {
                 Todos os Produtos
               </h1>
               <p className="text-sm" style={{ color: "var(--muted)" }}>
-                {storeProducts.length} produtos disponíveis
+                {activeProductCount} produto{activeProductCount !== 1 ? "s" : ""} disponivel{activeProductCount !== 1 ? "is" : ""}
               </p>
             </div>
           </div>
@@ -291,7 +299,7 @@ export default function ProdutosPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               {/* Category tabs */}
               <div className="scrollbar-hide flex gap-2 overflow-x-auto">
-                {categories.map((cat) => (
+                {activeCategories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
@@ -385,7 +393,9 @@ export default function ProdutosPage() {
           ) : (
             <>
               <p className="mb-6 text-sm" style={{ color: "var(--muted)" }}>
-                Exibindo <strong style={{ color: "var(--foreground)" }}>{filteredProducts.length}</strong> produto{filteredProducts.length !== 1 ? "s" : ""}
+                Exibindo{" "}
+                <strong style={{ color: "var(--foreground)" }}>{filteredProducts.length}</strong>{" "}
+                produto{filteredProducts.length !== 1 ? "s" : ""}
               </p>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredProducts.map((product) => (

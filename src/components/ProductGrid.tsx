@@ -4,13 +4,12 @@ import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useStore } from "@/store/useStore";
-import { categories } from "@/data/products";
 import Link from "next/link";
 import type { Product } from "@/store/useStore";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── Product Card ─── */
+/* --- Product Card --- */
 function ProductCard({
   product,
   isCenter,
@@ -216,7 +215,7 @@ function ProductCard({
   );
 }
 
-/* ─── Single Figma-style Carousel ─── */
+/* --- Single Figma-style Carousel --- */
 function SingleCarousel({ items }: { items: Product[] }) {
   const [centerIndex, setCenterIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -240,12 +239,10 @@ function SingleCarousel({ items }: { items: Product[] }) {
     [total]
   );
 
-  // Reset center when items change (filter)
   useEffect(() => {
     setCenterIndex(0);
   }, [items]);
 
-  // Auto-rotate
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (paused || hovered || hasCartItem || total <= 1) return;
@@ -266,7 +263,6 @@ function SingleCarousel({ items }: { items: Product[] }) {
     return result;
   }, [centerIndex, items, total]);
 
-  // Animate track on index change
   useEffect(() => {
     if (!trackRef.current) return;
     gsap.fromTo(
@@ -284,9 +280,7 @@ function SingleCarousel({ items }: { items: Product[] }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Carousel wrapper — overflow visible so box-shadow is not clipped */}
       <div className="relative" style={{ padding: "2rem 0" }}>
-        {/* Track */}
         <div
           ref={trackRef}
           className="flex items-center justify-center gap-5 transition-all duration-500"
@@ -328,7 +322,6 @@ function SingleCarousel({ items }: { items: Product[] }) {
           })}
         </div>
 
-        {/* Fade edges — pointer-events-none overlays on top of track */}
         <div
           className="pointer-events-none absolute inset-y-0 left-0 z-20"
           style={{
@@ -346,7 +339,6 @@ function SingleCarousel({ items }: { items: Product[] }) {
           }}
         />
 
-        {/* Embedded arrow — Left */}
         {total > 1 && (
           <button
             onClick={goPrev}
@@ -376,7 +368,6 @@ function SingleCarousel({ items }: { items: Product[] }) {
           </button>
         )}
 
-        {/* Embedded arrow — Right */}
         {total > 1 && (
           <button
             onClick={goNext}
@@ -407,7 +398,6 @@ function SingleCarousel({ items }: { items: Product[] }) {
         )}
       </div>
 
-      {/* Progress dots */}
       {total > 1 && (
         <div className="mt-2 flex justify-center gap-1">
           {items.map((_, i) => (
@@ -425,7 +415,6 @@ function SingleCarousel({ items }: { items: Product[] }) {
         </div>
       )}
 
-      {/* Counter */}
       {total > 1 && (
         <p
           className="mt-3 text-center text-xs tabular-nums"
@@ -438,16 +427,34 @@ function SingleCarousel({ items }: { items: Product[] }) {
   );
 }
 
-/* ─── Main Section ─── */
+/* --- Main Section --- */
 export default function ProductGrid() {
   const { searchQuery, setSearchQuery, activeCategory, setActiveCategory } =
     useStore();
   const storeProducts = useStore((s) => s.products);
+  const storeCategories = useStore((s) => s.categories);
   const tabsRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const [isSticky, setIsSticky] = useState(false);
 
-  // Section entrance animations
+  const activeCategories = useMemo(() => {
+    const active = storeCategories.filter((c) => c.active).map((c) => c.name);
+    return ["Todos", ...active];
+  }, [storeCategories]);
+
+  const filteredProducts = useMemo(() => {
+    return storeProducts.filter((p) => {
+      if (!p.active) return false;
+      const matchesCategory =
+        activeCategory === "Todos" || p.category === activeCategory;
+      const matchesSearch =
+        searchQuery === "" ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [activeCategory, searchQuery, storeProducts]);
+
   useEffect(() => {
     if (!sectionRef.current) return;
     const ctx = gsap.context(() => {
@@ -518,18 +525,6 @@ export default function ProductGrid() {
     return () => ctx.revert();
   }, []);
 
-  const filteredProducts = useMemo(() => {
-    return storeProducts.filter((p) => {
-      const matchesCategory =
-        activeCategory === "Todos" || p.category === activeCategory;
-      const matchesSearch =
-        searchQuery === "" ||
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [activeCategory, searchQuery, storeProducts]);
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsSticky(!entry.isIntersecting),
@@ -571,7 +566,7 @@ export default function ProductGrid() {
               color: "var(--foreground)",
             }}
           >
-            Ver todos os produtos →
+            Ver todos os produtos
           </Link>
         </div>
       </div>
@@ -594,7 +589,7 @@ export default function ProductGrid() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <div className="vitrine-tabs scrollbar-hide flex gap-2 overflow-x-auto">
-              {categories.map((cat) => (
+              {activeCategories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}

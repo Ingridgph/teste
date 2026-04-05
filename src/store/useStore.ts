@@ -1,19 +1,44 @@
 import { create } from "zustand";
-import { products as defaultProducts } from "@/data/products";
+import { products as defaultProducts, categories as defaultCategoryNames } from "@/data/products";
+
+export interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  createdAt: string;
+}
 
 export interface Product {
   id: string;
   name: string;
   price: number;
   image: string;
+  images: string[];
   category: string;
   description: string;
   badge?: string;
+  comments: Comment[];
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  active: boolean;
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
+}
+
+function generateId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 interface StoreState {
@@ -23,6 +48,8 @@ interface StoreState {
   contactOpen: boolean;
   theme: "light" | "dark";
   products: Product[];
+  categories: Category[];
+
   addToCart: (product: Product) => void;
   decrementFromCart: (productId: string) => void;
   removeFromCart: (productId: string) => void;
@@ -34,9 +61,18 @@ interface StoreState {
   initTheme: () => void;
   cartCount: () => number;
   generateWhatsAppLink: () => string;
-  addProduct: (product: Product) => void;
+
+  addProduct: (product: Omit<Product, "id" | "comments" | "active" | "createdAt" | "updatedAt"> & { badge?: string }) => void;
   updateProduct: (product: Product) => void;
   deleteProduct: (productId: string) => void;
+
+  addCategory: (name: string) => void;
+  updateCategory: (id: string, name: string) => void;
+  deleteCategory: (id: string) => void;
+  reactivateCategory: (id: string) => void;
+
+  addComment: (productId: string, comment: Omit<Comment, "id" | "createdAt">) => void;
+  deleteComment: (productId: string, commentId: string) => void;
 }
 
 export const WHATSAPP_NUMBER = "5500000000000";
@@ -61,6 +97,14 @@ function applyTheme(theme: "light" | "dark", animate = false) {
   localStorage.setItem(THEME_STORAGE_KEY, theme);
 }
 
+const initialCategories: Category[] = defaultCategoryNames
+  .filter((name) => name !== "Todos")
+  .map((name) => ({
+    id: generateId(),
+    name,
+    active: true,
+  }));
+
 export const useStore = create<StoreState>((set, get) => ({
   cart: [],
   searchQuery: "",
@@ -68,6 +112,7 @@ export const useStore = create<StoreState>((set, get) => ({
   contactOpen: false,
   theme: "dark",
   products: defaultProducts,
+  categories: initialCategories,
 
   initTheme: () => {
     const saved = getSavedTheme();
@@ -132,7 +177,7 @@ export const useStore = create<StoreState>((set, get) => ({
     const { cart } = get();
     if (cart.length === 0) {
       return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-        "Ol\u00e1! Gostaria de saber mais sobre os produtos da Noleto iPhones."
+        "Ol\u00e1! Gostaria de saber mais sobre os produtos."
       )}`;
     }
     const items = cart
@@ -149,16 +194,111 @@ export const useStore = create<StoreState>((set, get) => ({
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   },
 
-  addProduct: (product) =>
-    set((state) => ({ products: [...state.products, product] })),
+  addProduct: (productData) => {
+    const now = new Date().toISOString();
+    const images = productData.images ?? [];
+    const image = productData.image || (images.length > 0 ? images[0] : "");
+    const product: Product = {
+      id: generateId(),
+      name: productData.name.trim(),
+      price: productData.price,
+      image,
+      images,
+      category: productData.category.trim(),
+      description: productData.description.trim(),
+      badge: productData.badge ? productData.badge.trim() : undefined,
+      comments: [],
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    };
+    set((state) => ({ products: [...state.products, product] }));
+  },
 
-  updateProduct: (product) =>
+  updateProduct: (product) => {
+    const now = new Date().toISOString();
+    const updated: Product = {
+      ...product,
+      name: product.name.trim(),
+      description: product.description.trim(),
+      category: product.category.trim(),
+      badge: product.badge ? product.badge.trim() : undefined,
+      updatedAt: now,
+    };
     set((state) => ({
-      products: state.products.map((p) => (p.id === product.id ? product : p)),
-    })),
+      products: state.products.map((p) => (p.id === updated.id ? updated : p)),
+    }));
+  },
 
   deleteProduct: (productId) =>
     set((state) => ({
-      products: state.products.filter((p) => p.id !== productId),
+      products: state.products.map((p) =>
+        p.id === productId ? { ...p, active: false, updatedAt: new Date().toISOString() } : p
+      ),
     })),
+
+  addCategory: (name) => {
+    const trimmed = name.trim();
+    const category: Category = {
+      id: generateId(),
+      name: trimmed,
+      active: true,
+    };
+    set((state) => ({ categories: [...state.categories, category] }));
+  },
+
+  updateCategory: (id, name) => {
+    const trimmed = name.trim();
+    set((state) => ({
+      categories: state.categories.map((c) =>
+        c.id === id ? { ...c, name: trimmed } : c
+      ),
+    }));
+  },
+
+  deleteCategory: (id) =>
+    set((state) => ({
+      categories: state.categories.map((c) =>
+        c.id === id ? { ...c, active: false } : c
+      ),
+    })),
+
+  reactivateCategory: (id) =>
+    set((state) => ({
+      categories: state.categories.map((c) =>
+        c.id === id ? { ...c, active: true } : c
+      ),
+    })),
+
+  addComment: (productId, comment) => {
+    const now = new Date().toISOString();
+    const newComment: Comment = {
+      id: generateId(),
+      author: comment.author.trim(),
+      text: comment.text.trim(),
+      createdAt: now,
+    };
+    set((state) => ({
+      products: state.products.map((p) =>
+        p.id === productId
+          ? { ...p, comments: [...p.comments, newComment], updatedAt: now }
+          : p
+      ),
+    }));
+  },
+
+  deleteComment: (productId, commentId) => {
+    const now = new Date().toISOString();
+    set((state) => ({
+      products: state.products.map((p) =>
+        p.id === productId
+          ? {
+              ...p,
+              comments: p.comments.filter((c) => c.id !== commentId),
+              updatedAt: now,
+            }
+          : p
+      ),
+    }));
+  },
 }));
