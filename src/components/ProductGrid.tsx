@@ -135,36 +135,38 @@ function CategoryCarousel({ category, items }: { category: string; items: Produc
   return (
     <div className="relative" onMouseEnter={pause} onMouseLeave={resume}>
       {/* Header */}
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-bold sm:text-xl" style={{ color: "var(--foreground)" }}>{category}</h3>
-          <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>{total} produtos</span>
-        </div>
-        {total > visibleCount && (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={goPrev}
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110"
-              style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <button
-              onClick={goNext}
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110"
-              style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </button>
-          </div>
-        )}
+      <div className="mb-5">
+        <h3 className="text-lg font-bold sm:text-xl" style={{ color: "var(--foreground)" }}>{category}</h3>
+        <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>{total} produtos</span>
       </div>
 
-      {/* Cards grid - always 3 visible */}
-      <div ref={trackRef} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {visibleItems.map((product) => (
-          <ProductCard key={`${currentIndex}-${product.id}`} product={product} />
-        ))}
+      {/* Cards grid with side arrows */}
+      <div className="relative flex items-center">
+        {total > visibleCount && (
+          <button
+            onClick={goPrev}
+            className="absolute -left-5 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110"
+            style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+        )}
+
+        <div ref={trackRef} className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visibleItems.map((product) => (
+            <ProductCard key={`${currentIndex}-${product.id}`} product={product} />
+          ))}
+        </div>
+
+        {total > visibleCount && (
+          <button
+            onClick={goNext}
+            className="absolute -right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110"
+            style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </button>
+        )}
       </div>
 
       {/* Dot indicators */}
