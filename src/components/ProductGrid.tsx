@@ -10,7 +10,7 @@ import { products, categories } from "@/data/products";
 import type { Product } from "@/store/useStore";
 
 /* ─── Product Card ─── */
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, isCenter, onInteract }: { product: Product; isCenter: boolean; onInteract: (paused: boolean) => void }) {
   const addToCart = useStore((s) => s.addToCart);
   const decrementFromCart = useStore((s) => s.decrementFromCart);
   const removeFromCart = useStore((s) => s.removeFromCart);
@@ -20,16 +20,33 @@ function ProductCard({ product }: { product: Product }) {
 
   const handleAdd = () => {
     addToCart(product);
+    onInteract(true);
     if (cardRef.current) {
-      gsap.fromTo(cardRef.current, { scale: 0.97 }, { scale: 1, duration: 0.3, ease: "back.out(1.7)" });
+      gsap.fromTo(cardRef.current, { scale: 0.95 }, { scale: 1, duration: 0.4, ease: "elastic.out(1, 0.5)" });
     }
+  };
+
+  const handleDecrement = () => {
+    decrementFromCart(product.id);
+    const existing = cart.find((item) => item.product.id === product.id);
+    if (existing && existing.quantity <= 1) onInteract(false);
+  };
+
+  const handleRemove = () => {
+    removeFromCart(product.id);
+    onInteract(false);
   };
 
   return (
     <div
       ref={cardRef}
-      className="group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg"
-      style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--card-border)" }}
+      className="relative flex shrink-0 flex-col overflow-hidden rounded-2xl border transition-all duration-500"
+      style={{
+        backgroundColor: "var(--card-bg)",
+        borderColor: isCenter ? "var(--accent)" : "var(--card-border)",
+        boxShadow: isCenter ? "0 8px 40px var(--accent-glow)" : "none",
+        width: "280px",
+      }}
     >
       {product.badge && (
         <span className="absolute left-3 top-3 z-10 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: "var(--accent)" }}>
@@ -37,21 +54,25 @@ function ProductCard({ product }: { product: Product }) {
         </span>
       )}
 
-      <div className="relative flex items-center justify-center px-5 py-6">
+      <div className="relative flex items-center justify-center px-5 py-8">
         <div
-          className="flex h-20 w-20 items-center justify-center rounded-2xl border transition-transform duration-500 group-hover:scale-110"
-          style={{ background: "linear-gradient(135deg, var(--accent-soft), rgba(37,150,190,0.15))", borderColor: "rgba(255,255,255,0.05)" }}
+          className="flex h-24 w-24 items-center justify-center rounded-2xl border transition-transform duration-500"
+          style={{
+            background: "linear-gradient(135deg, var(--accent-soft), rgba(37,150,190,0.15))",
+            borderColor: "rgba(255,255,255,0.05)",
+            transform: isCenter ? "scale(1.1)" : "scale(1)",
+          }}
         >
-          <span className="text-2xl font-bold" style={{ color: "var(--accent)", opacity: 0.4 }}>
+          <span className="text-3xl font-bold" style={{ color: "var(--accent)", opacity: 0.4 }}>
             {product.name.charAt(0)}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 px-4 pb-4">
+      <div className="flex flex-1 flex-col gap-1.5 px-5 pb-5">
         <h3 className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>{product.name}</h3>
         <p className="truncate text-xs" style={{ color: "var(--muted)" }}>{product.description}</p>
-        <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <span className="text-base font-bold" style={{ color: "var(--foreground)" }}>
             R${product.price.toLocaleString("pt-BR")}
           </span>
@@ -59,7 +80,7 @@ function ProductCard({ product }: { product: Product }) {
           {inCart ? (
             <div className="flex items-center gap-1">
               <button
-                onClick={() => decrementFromCart(product.id)}
+                onClick={handleDecrement}
                 className="flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
                 style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
                 aria-label="Diminuir quantidade"
@@ -76,7 +97,7 @@ function ProductCard({ product }: { product: Product }) {
                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
               </button>
               <button
-                onClick={() => removeFromCart(product.id)}
+                onClick={handleRemove}
                 className="ml-1 flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
                 style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
                 aria-label="Remover do carrinho"
@@ -100,108 +121,137 @@ function ProductCard({ product }: { product: Product }) {
   );
 }
 
-/* ─── Animated Carousel: shows 3 items, auto-rotates ─── */
+/* ─── Figma-style Carousel ─── */
 function CategoryCarousel({ category, items }: { category: string; items: Product[] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [centerIndex, setCenterIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const total = items.length;
-  const visibleCount = 3;
+  const cart = useStore((s) => s.cart);
 
-  // Get 3 visible items with wrapping
-  const visibleItems = useMemo(() => {
-    const result: Product[] = [];
-    for (let i = 0; i < Math.min(visibleCount, total); i++) {
-      result.push(items[(currentIndex + i) % total]);
+  // Check if any item in this carousel is in cart
+  const hasCartItem = useMemo(() => {
+    return items.some((item) => cart.some((c) => c.product.id === item.id));
+  }, [items, cart]);
+
+  const goNext = useCallback(() => setCenterIndex((prev) => (prev + 1) % total), [total]);
+  const goPrev = useCallback(() => setCenterIndex((prev) => (prev - 1 + total) % total), [total]);
+
+  // Auto-rotate
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (paused || hovered || hasCartItem || total <= 1) return;
+    intervalRef.current = setInterval(goNext, 4000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [goNext, total, paused, hovered, hasCartItem]);
+
+  // Get ordered items: center item + items radiating outward
+  const displayItems = useMemo(() => {
+    const result: { product: Product; offset: number }[] = [];
+    const half = Math.floor(Math.min(total, 7) / 2);
+    for (let i = -half; i <= half; i++) {
+      const idx = ((centerIndex + i) % total + total) % total;
+      result.push({ product: items[idx], offset: i });
     }
     return result;
-  }, [currentIndex, items, total]);
+  }, [centerIndex, items, total]);
 
-  const goNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % total);
-  }, [total]);
-
-  const goPrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
-
-  // Animate on index change
+  // Animate track on index change
   useEffect(() => {
     if (!trackRef.current) return;
-    const cards = trackRef.current.children;
-    gsap.fromTo(
-      cards,
-      { opacity: 0, x: 40, scale: 0.95 },
-      { opacity: 1, x: 0, scale: 1, stagger: 0.08, duration: 0.45, ease: "power2.out" }
+    gsap.fromTo(trackRef.current.children,
+      { opacity: 0.5 },
+      { opacity: 1, duration: 0.4, stagger: 0.05, ease: "power2.out" }
     );
-  }, [currentIndex]);
-
-  // Auto-rotate every 4s
-  useEffect(() => {
-    if (total <= visibleCount) return;
-    intervalRef.current = setInterval(goNext, 4000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [goNext, total]);
-
-  // Pause on hover
-  const pause = () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  const resume = () => {
-    if (total <= visibleCount) return;
-    intervalRef.current = setInterval(goNext, 4000);
-  };
-
-  // Dots
-  const totalPages = total <= visibleCount ? 1 : total;
+  }, [centerIndex]);
 
   return (
-    <div className="group/carousel relative" onMouseEnter={pause} onMouseLeave={resume}>
+    <div className="relative" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       {/* Header */}
-      <div className="mb-5">
-        <h3 className="text-lg font-bold sm:text-xl" style={{ color: "var(--foreground)" }}>{category}</h3>
-        <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>{total} produtos</span>
-      </div>
-
-      {/* Cards grid with embedded arrows */}
-      <div className="relative">
-        <div ref={trackRef} className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {visibleItems.map((product) => (
-            <ProductCard key={`${currentIndex}-${product.id}`} product={product} />
-          ))}
+      <div className="mb-6 flex items-end justify-between">
+        <div>
+          <h3 className="text-lg font-bold sm:text-xl" style={{ color: "var(--foreground)" }}>{category}</h3>
+          <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>{total} produtos</span>
         </div>
-
-        {total > visibleCount && (
-          <>
-            <button
-              onClick={goPrev}
-              className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover/carousel:opacity-100 hover:scale-110"
-              style={{ backgroundColor: "color-mix(in srgb, var(--background) 80%, transparent)", backdropFilter: "blur(8px)", color: "var(--foreground)", border: "1px solid var(--card-border)" }}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <button
-              onClick={goNext}
-              className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover/carousel:opacity-100 hover:scale-110"
-              style={{ backgroundColor: "color-mix(in srgb, var(--background) 80%, transparent)", backdropFilter: "blur(8px)", color: "var(--foreground)", border: "1px solid var(--card-border)" }}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </button>
-          </>
+        {total > 1 && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs tabular-nums" style={{ color: "var(--muted)" }}>
+              {centerIndex + 1} / {total}
+            </span>
+            <div className="flex gap-1.5">
+              <button
+                onClick={goPrev}
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
+                style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+                aria-label="Anterior"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <button
+                onClick={goNext}
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
+                style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+                aria-label="Proximo"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Dot indicators */}
-      {total > visibleCount && (
-        <div className="mt-5 flex justify-center gap-1.5">
-          {Array.from({ length: totalPages }).map((_, i) => (
+      {/* Figma-style track */}
+      <div className="relative overflow-hidden" style={{ padding: "1rem 0" }}>
+        <div
+          ref={trackRef}
+          className="flex items-center justify-center gap-5 transition-all duration-500"
+        >
+          {displayItems.map(({ product, offset }) => {
+            const absOffset = Math.abs(offset);
+            const scale = absOffset === 0 ? 1 : absOffset === 1 ? 0.88 : 0.75;
+            const opacity = absOffset === 0 ? 1 : absOffset === 1 ? 0.7 : 0.4;
+            const zIndex = 10 - absOffset;
+
+            return (
+              <div
+                key={`${centerIndex}-${product.id}-${offset}`}
+                className="shrink-0 transition-all duration-500 ease-out"
+                style={{
+                  transform: `scale(${scale})`,
+                  opacity,
+                  zIndex,
+                  filter: absOffset > 1 ? "blur(2px)" : "none",
+                }}
+                onClick={() => { if (offset !== 0) setCenterIndex(((centerIndex + offset) % total + total) % total); }}
+              >
+                <ProductCard
+                  product={product}
+                  isCenter={offset === 0}
+                  onInteract={setPaused}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Fade edges */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-24" style={{ background: "linear-gradient(to right, var(--background), transparent)" }} />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-24" style={{ background: "linear-gradient(to left, var(--background), transparent)" }} />
+      </div>
+
+      {/* Progress bar */}
+      {total > 1 && (
+        <div className="mt-4 flex justify-center gap-1">
+          {items.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrentIndex(i)}
-              className="h-2 rounded-full transition-all duration-300"
+              onClick={() => setCenterIndex(i)}
+              className="h-1 rounded-full transition-all duration-500"
               style={{
-                width: i === currentIndex ? "24px" : "8px",
-                backgroundColor: i === currentIndex ? "var(--accent)" : "var(--card-border)",
+                width: i === centerIndex ? "32px" : "8px",
+                backgroundColor: i === centerIndex ? "var(--accent)" : "var(--card-border)",
               }}
             />
           ))}
