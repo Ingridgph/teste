@@ -9,6 +9,8 @@ import type { Product } from "@/store/useStore";
 /* ─── Product Card ─── */
 function ProductCard({ product }: { product: Product }) {
   const addToCart = useStore((s) => s.addToCart);
+  const decrementFromCart = useStore((s) => s.decrementFromCart);
+  const removeFromCart = useStore((s) => s.removeFromCart);
   const cart = useStore((s) => s.cart);
   const cardRef = useRef<HTMLDivElement>(null);
   const inCart = cart.find((item) => item.product.id === product.id);
@@ -16,62 +18,79 @@ function ProductCard({ product }: { product: Product }) {
   const handleAdd = () => {
     addToCart(product);
     if (cardRef.current) {
-      gsap.fromTo(cardRef.current, { scale: 0.95 }, { scale: 1, duration: 0.3, ease: "back.out(1.7)" });
+      gsap.fromTo(cardRef.current, { scale: 0.97 }, { scale: 1, duration: 0.3, ease: "back.out(1.7)" });
     }
   };
 
   return (
     <div
       ref={cardRef}
-      className="group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg"
+      className="group relative flex w-full shrink-0 flex-row items-center gap-3 overflow-hidden rounded-xl border p-3 transition-all duration-300 hover:shadow-lg"
       style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--card-border)" }}
     >
       {product.badge && (
-        <span className="absolute left-3 top-3 z-10 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: "var(--accent)" }}>
+        <span className="absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: "var(--accent)" }}>
           {product.badge}
         </span>
       )}
 
-      <div className="relative flex aspect-square items-center justify-center p-5">
-        <div
-          className="flex h-24 w-24 items-center justify-center rounded-2xl border transition-transform duration-500 group-hover:scale-110 sm:h-28 sm:w-28"
-          style={{ background: "linear-gradient(135deg, var(--accent-soft), rgba(37,150,190,0.15))", borderColor: "rgba(255,255,255,0.05)" }}
-        >
-          <span className="text-3xl font-bold sm:text-4xl" style={{ color: "var(--accent)", opacity: 0.4 }}>
-            {product.name.charAt(0)}
-          </span>
-        </div>
+      <div
+        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border transition-transform duration-500 group-hover:scale-105"
+        style={{ background: "linear-gradient(135deg, var(--accent-soft), rgba(37,150,190,0.15))", borderColor: "rgba(255,255,255,0.05)" }}
+      >
+        <span className="text-lg font-bold" style={{ color: "var(--accent)", opacity: 0.4 }}>
+          {product.name.charAt(0)}
+        </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 px-4 pb-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <h3 className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>{product.name}</h3>
         <p className="truncate text-xs" style={{ color: "var(--muted)" }}>{product.description}</p>
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="text-sm font-bold sm:text-base" style={{ color: "var(--foreground)" }}>
-            R${product.price.toLocaleString("pt-BR")}
-          </span>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
+          R${product.price.toLocaleString("pt-BR")}
+        </span>
+
+        {inCart ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => decrementFromCart(product.id)}
+              className="flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
+              style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
+              aria-label="Diminuir quantidade"
+            >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
+            </button>
+            <span className="w-5 text-center text-xs font-bold" style={{ color: "var(--foreground)" }}>{inCart.quantity}</span>
+            <button
+              onClick={handleAdd}
+              className="flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
+              style={{ backgroundColor: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.3)" }}
+              aria-label="Aumentar quantidade"
+            >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            </button>
+            <button
+              onClick={() => removeFromCart(product.id)}
+              className="ml-1 flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
+              style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
+              aria-label="Remover do carrinho"
+            >
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        ) : (
           <button
             onClick={handleAdd}
-            className="flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200"
-            style={
-              inCart
-                ? { backgroundColor: "rgba(34,197,94,0.15)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.3)" }
-                : { backgroundColor: "var(--accent)", color: "#fff" }
-            }
+            className="flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200"
+            style={{ backgroundColor: "var(--accent)", color: "#fff" }}
           >
-            {inCart ? (
-              <>
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                {inCart.quantity}x
-              </>
-            ) : (
-              <>
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                Pedir
-              </>
-            )}
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            Pedir
           </button>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -286,7 +305,7 @@ export default function ProductGrid() {
         </div>
       </div>
 
-      <div className="mx-auto mt-6 max-w-7xl space-y-14 px-4 sm:px-6">
+      <div className="mx-auto mt-6 space-y-14 px-8 sm:px-12 lg:px-16">
         {grouped.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--card-border)" }}>

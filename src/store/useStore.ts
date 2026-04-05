@@ -22,6 +22,7 @@ interface StoreState {
   contactOpen: boolean;
   theme: "light" | "dark";
   addToCart: (product: Product) => void;
+  decrementFromCart: (productId: string) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
   setSearchQuery: (query: string) => void;
@@ -81,6 +82,22 @@ export const useStore = create<StoreState>((set, get) => ({
         };
       }
       return { cart: [...state.cart, { product, quantity: 1 }] };
+    }),
+
+  decrementFromCart: (productId) =>
+    set((state) => {
+      const existing = state.cart.find((item) => item.product.id === productId);
+      if (!existing) return state;
+      if (existing.quantity <= 1) {
+        return { cart: state.cart.filter((item) => item.product.id !== productId) };
+      }
+      return {
+        cart: state.cart.map((item) =>
+          item.product.id === productId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        ),
+      };
     }),
 
   removeFromCart: (productId) =>
