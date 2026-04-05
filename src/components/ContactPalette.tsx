@@ -5,12 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { gsap } from "gsap";
-import { useStore } from "@/store/useStore";
+import { useStore, WHATSAPP_NUMBER } from "@/store/useStore";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Nome muito curto"),
   email: z.string().email("E-mail invalido"),
-  phone: z.string().min(10, "Telefone invalido").max(15),
+  phone: z.string().regex(/^\d{10,15}$/, "Telefone invalido (somente numeros)"),
   message: z.string().min(5, "Mensagem muito curta").max(500),
 });
 
@@ -91,7 +91,7 @@ export default function ContactPalette() {
 
   const onSubmit = (data: ContactForm) => {
     const message = `Contato via site:\n\nNome: ${data.name}\nE-mail: ${data.email}\nTelefone: ${data.phone}\nMensagem: ${data.message}`;
-    const link = `https://wa.me/5500000000000?text=${encodeURIComponent(message)}`;
+    const link = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     window.open(link, "_blank");
     reset();
     setContactOpen(false);
@@ -191,7 +191,9 @@ export default function ContactPalette() {
             <input
               {...register("phone")}
               type="tel"
-              placeholder="(00) 00000-0000"
+              inputMode="numeric"
+              placeholder="00000000000"
+              onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ""); }}
               className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:opacity-40"
               style={inputStyle(!!errors.phone)}
             />

@@ -7,10 +7,11 @@ import { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { WHATSAPP_NUMBER } from "@/store/useStore";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Nome muito curto"),
-  phone: z.string().min(10, "Telefone invalido").max(15),
+  phone: z.string().regex(/^\d{10,15}$/, "Telefone invalido (somente numeros)"),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -39,7 +40,7 @@ export default function ContatoPage() {
 
   const onSubmit = (data: ContactFormData) => {
     const message = `Contato via site:\n\nNome: ${data.name}\nTelefone: ${data.phone}`;
-    const link = `https://wa.me/5500000000000?text=${encodeURIComponent(message)}`;
+    const link = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
     window.open(link, "_blank");
     reset();
   };
@@ -156,7 +157,9 @@ export default function ContatoPage() {
                 <input
                   {...register("phone")}
                   type="tel"
-                  placeholder="(00) 00000-0000"
+                  inputMode="numeric"
+                  placeholder="00000000000"
+                  onInput={(e) => { e.currentTarget.value = e.currentTarget.value.replace(/\D/g, ""); }}
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:opacity-40"
                   style={inputStyle(!!errors.phone)}
                 />

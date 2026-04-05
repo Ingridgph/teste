@@ -33,11 +33,12 @@ interface StoreState {
   generateWhatsAppLink: () => string;
 }
 
-const WHATSAPP_NUMBER = "5500000000000";
+export const WHATSAPP_NUMBER = "5500000000000";
+const THEME_STORAGE_KEY = "store-theme";
 
 function getSavedTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "dark";
-  const saved = localStorage.getItem("noleto-theme");
+  const saved = localStorage.getItem(THEME_STORAGE_KEY);
   if (saved === "light" || saved === "dark") return saved;
   return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
@@ -51,7 +52,7 @@ function applyTheme(theme: "light" | "dark", animate = false) {
   } else {
     document.documentElement.setAttribute("data-theme", theme);
   }
-  localStorage.setItem("noleto-theme", theme);
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
 }
 
 export const useStore = create<StoreState>((set, get) => ({
