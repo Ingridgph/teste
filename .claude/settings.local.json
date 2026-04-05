@@ -5,7 +5,8 @@
       "Bash(git commit -m ':*)",
       "Bash(git push:*)",
       "Bash(mv CLAUDE.md .claude/CLAUDE.md)",
-      "Bash(mv AGENTS.md .claude/AGENTS.md)"
+      "Bash(mv AGENTS.md .claude/AGENTS.md)",
+      "Bash(npm run:*)"
     ]
   }
 }
