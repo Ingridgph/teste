@@ -14,6 +14,16 @@ export default function WhatsAppButton() {
 
   const count = cartCount();
 
+  // Entrance animation
+  useEffect(() => {
+    if (!buttonRef.current) return;
+    gsap.fromTo(
+      buttonRef.current,
+      { scale: 0, opacity: 0, rotation: -20 },
+      { scale: 1, opacity: 1, rotation: 0, duration: 0.7, ease: "elastic.out(1, 0.5)", delay: 1.5 }
+    );
+  }, []);
+
   // Bounce animation when items are added
   useEffect(() => {
     if (count > prevCount.current && buttonRef.current) {

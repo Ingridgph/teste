@@ -1,12 +1,59 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
 import { useStore } from "@/store/useStore";
 
 export default function Navbar() {
   const { theme, toggleTheme } = useStore();
+  const navRef = useRef<HTMLElement>(null);
+  const logoRef = useRef<HTMLAnchorElement>(null);
+  const linksRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  // Entrance animation
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(navRef.current, { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", delay: 0.1 });
+      if (logoRef.current) {
+        gsap.fromTo(logoRef.current, { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out", delay: 0.4 });
+      }
+      if (linksRef.current) {
+        gsap.fromTo(linksRef.current.children, { y: -15, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.08, duration: 0.5, ease: "power3.out", delay: 0.5 });
+      }
+      if (actionsRef.current) {
+        gsap.fromTo(actionsRef.current, { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out", delay: 0.6 });
+      }
+    });
+    return () => ctx.revert();
+  }, []);
+
+  // Hide on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY > lastScrollY.current && currentY > 100) {
+        setHidden(true);
+      } else {
+        setHidden(false);
+      }
+      lastScrollY.current = currentY;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Animate hide/show
+  useEffect(() => {
+    if (!navRef.current) return;
+    gsap.to(navRef.current, { y: hidden ? -80 : 0, duration: 0.4, ease: "power2.out" });
+  }, [hidden]);
 
   return (
     <nav
+      ref={navRef}
       className="fixed left-0 right-0 top-0 z-50"
       style={{
         backgroundColor: "color-mix(in srgb, var(--background) 70%, transparent)",
@@ -17,9 +64,9 @@ export default function Navbar() {
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5">
+        <a ref={logoRef} href="/" className="flex items-center gap-2.5">
           <div
-            className="flex h-9 w-9 items-center justify-center rounded-lg"
+            className="flex h-9 w-9 items-center justify-center rounded-lg transition-transform duration-300 hover:scale-110 hover:rotate-6"
             style={{ backgroundColor: "var(--accent)" }}
           >
             <span className="text-sm font-bold text-white">N</span>
@@ -31,27 +78,27 @@ export default function Navbar() {
         </a>
 
         {/* Nav Links - Desktop */}
-        <div className="hidden items-center gap-8 md:flex">
-          <a href="/#hero-section" className="text-sm transition-opacity hover:opacity-70" style={{ color: "var(--muted)" }}>
+        <div ref={linksRef} className="hidden items-center gap-8 md:flex">
+          <a href="/#hero-section" className="text-sm transition-all duration-200 hover:opacity-70 hover:translate-y-[-1px]" style={{ color: "var(--muted)" }}>
             Inicio
           </a>
-          <a href="/#vitrine" className="text-sm transition-opacity hover:opacity-70" style={{ color: "var(--muted)" }}>
+          <a href="/#vitrine" className="text-sm transition-all duration-200 hover:opacity-70 hover:translate-y-[-1px]" style={{ color: "var(--muted)" }}>
             Produtos
           </a>
-          <a href="/contato" className="text-sm transition-opacity hover:opacity-70" style={{ color: "var(--muted)" }}>
+          <a href="/contato" className="text-sm transition-all duration-200 hover:opacity-70 hover:translate-y-[-1px]" style={{ color: "var(--muted)" }}>
             Contato
           </a>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div ref={actionsRef} className="flex items-center gap-2">
           {/* Social icons - compact */}
           <div className="hidden items-center gap-1 sm:flex">
             <a
               href="https://instagram.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-70"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:opacity-70 hover:scale-110"
               style={{ color: "var(--muted)" }}
               aria-label="Instagram"
             >
@@ -61,7 +108,7 @@ export default function Navbar() {
               href="https://wa.me/5500000000000"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-70"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:opacity-70 hover:scale-110"
               style={{ color: "var(--muted)" }}
               aria-label="WhatsApp"
             >
@@ -71,7 +118,7 @@ export default function Navbar() {
               href="https://tiktok.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-opacity hover:opacity-70"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 hover:opacity-70 hover:scale-110"
               style={{ color: "var(--muted)" }}
               aria-label="TikTok"
             >
@@ -85,7 +132,7 @@ export default function Navbar() {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-opacity hover:opacity-70"
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 hover:opacity-70 hover:rotate-180"
             style={{ color: "var(--muted)" }}
             aria-label="Alternar tema"
           >
@@ -103,10 +150,11 @@ export default function Navbar() {
           {/* Contact button */}
           <a
             href="/contato"
-            className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all hover:scale-105"
+            className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
             style={{
               backgroundColor: "var(--accent)",
               color: "#ffffff",
+              boxShadow: "0 2px 10px var(--accent-glow)",
             }}
           >
             Contato
