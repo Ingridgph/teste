@@ -28,72 +28,73 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <div
       ref={cardRef}
-      className="group relative flex w-full shrink-0 flex-row items-center gap-3 overflow-hidden rounded-xl border p-3 transition-all duration-300 hover:shadow-lg"
+      className="group relative flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg"
       style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--card-border)" }}
     >
       {product.badge && (
-        <span className="absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: "var(--accent)" }}>
+        <span className="absolute left-3 top-3 z-10 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: "var(--accent)" }}>
           {product.badge}
         </span>
       )}
 
-      <div
-        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border transition-transform duration-500 group-hover:scale-105"
-        style={{ background: "linear-gradient(135deg, var(--accent-soft), rgba(37,150,190,0.15))", borderColor: "rgba(255,255,255,0.05)" }}
-      >
-        <span className="text-lg font-bold" style={{ color: "var(--accent)", opacity: 0.4 }}>
-          {product.name.charAt(0)}
-        </span>
+      <div className="relative flex items-center justify-center px-5 py-6">
+        <div
+          className="flex h-20 w-20 items-center justify-center rounded-2xl border transition-transform duration-500 group-hover:scale-110"
+          style={{ background: "linear-gradient(135deg, var(--accent-soft), rgba(37,150,190,0.15))", borderColor: "rgba(255,255,255,0.05)" }}
+        >
+          <span className="text-2xl font-bold" style={{ color: "var(--accent)", opacity: 0.4 }}>
+            {product.name.charAt(0)}
+          </span>
+        </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="flex flex-1 flex-col gap-1.5 px-4 pb-4">
         <h3 className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>{product.name}</h3>
         <p className="truncate text-xs" style={{ color: "var(--muted)" }}>{product.description}</p>
-      </div>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="text-base font-bold" style={{ color: "var(--foreground)" }}>
+            R${product.price.toLocaleString("pt-BR")}
+          </span>
 
-      <div className="flex shrink-0 items-center gap-2">
-        <span className="text-sm font-bold" style={{ color: "var(--foreground)" }}>
-          R${product.price.toLocaleString("pt-BR")}
-        </span>
-
-        {inCart ? (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => decrementFromCart(product.id)}
-              className="flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
-              style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
-              aria-label="Diminuir quantidade"
-            >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
-            </button>
-            <span className="w-5 text-center text-xs font-bold" style={{ color: "var(--foreground)" }}>{inCart.quantity}</span>
+          {inCart ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => decrementFromCart(product.id)}
+                className="flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
+                style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
+                aria-label="Diminuir quantidade"
+              >
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
+              </button>
+              <span className="w-5 text-center text-xs font-bold" style={{ color: "var(--foreground)" }}>{inCart.quantity}</span>
+              <button
+                onClick={handleAdd}
+                className="flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
+                style={{ backgroundColor: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.3)" }}
+                aria-label="Aumentar quantidade"
+              >
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+              </button>
+              <button
+                onClick={() => removeFromCart(product.id)}
+                className="ml-1 flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
+                style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
+                aria-label="Remover do carrinho"
+              >
+                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          ) : (
             <button
               onClick={handleAdd}
-              className="flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
-              style={{ backgroundColor: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.3)" }}
-              aria-label="Aumentar quantidade"
+              className="flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 hover:scale-105"
+              style={{ backgroundColor: "var(--accent)", color: "#fff" }}
             >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+              Pedir
             </button>
-            <button
-              onClick={() => removeFromCart(product.id)}
-              className="ml-1 flex h-7 w-7 items-center justify-center rounded-lg transition-all hover:scale-110"
-              style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)" }}
-              aria-label="Remover do carrinho"
-            >
-              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleAdd}
-            className="flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200"
-            style={{ backgroundColor: "var(--accent)", color: "#fff" }}
-          >
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            Pedir
-          </button>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -155,39 +156,38 @@ function CategoryCarousel({ category, items }: { category: string; items: Produc
   const totalPages = total <= visibleCount ? 1 : total;
 
   return (
-    <div className="relative" onMouseEnter={pause} onMouseLeave={resume}>
+    <div className="group/carousel relative" onMouseEnter={pause} onMouseLeave={resume}>
       {/* Header */}
       <div className="mb-5">
         <h3 className="text-lg font-bold sm:text-xl" style={{ color: "var(--foreground)" }}>{category}</h3>
         <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>{total} produtos</span>
       </div>
 
-      {/* Cards grid with side arrows */}
-      <div className="relative flex items-center">
-        {total > visibleCount && (
-          <button
-            onClick={goPrev}
-            className="absolute -left-5 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110"
-            style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </button>
-        )}
-
-        <div ref={trackRef} className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Cards grid with embedded arrows */}
+      <div className="relative">
+        <div ref={trackRef} className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {visibleItems.map((product) => (
             <ProductCard key={`${currentIndex}-${product.id}`} product={product} />
           ))}
         </div>
 
         {total > visibleCount && (
-          <button
-            onClick={goNext}
-            className="absolute -right-5 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all hover:scale-110"
-            style={{ backgroundColor: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--foreground)" }}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-          </button>
+          <>
+            <button
+              onClick={goPrev}
+              className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover/carousel:opacity-100 hover:scale-110"
+              style={{ backgroundColor: "color-mix(in srgb, var(--background) 80%, transparent)", backdropFilter: "blur(8px)", color: "var(--foreground)", border: "1px solid var(--card-border)" }}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <button
+              onClick={goNext}
+              className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover/carousel:opacity-100 hover:scale-110"
+              style={{ backgroundColor: "color-mix(in srgb, var(--background) 80%, transparent)", backdropFilter: "blur(8px)", color: "var(--foreground)", border: "1px solid var(--card-border)" }}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </>
         )}
       </div>
 
