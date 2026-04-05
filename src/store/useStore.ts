@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { products as defaultProducts } from "@/data/products";
 
 export interface Product {
   id: string;
@@ -21,6 +22,7 @@ interface StoreState {
   activeCategory: string;
   contactOpen: boolean;
   theme: "light" | "dark";
+  products: Product[];
   addToCart: (product: Product) => void;
   decrementFromCart: (productId: string) => void;
   removeFromCart: (productId: string) => void;
@@ -32,6 +34,9 @@ interface StoreState {
   initTheme: () => void;
   cartCount: () => number;
   generateWhatsAppLink: () => string;
+  addProduct: (product: Product) => void;
+  updateProduct: (product: Product) => void;
+  deleteProduct: (productId: string) => void;
 }
 
 export const WHATSAPP_NUMBER = "5500000000000";
@@ -62,6 +67,7 @@ export const useStore = create<StoreState>((set, get) => ({
   activeCategory: "Todos",
   contactOpen: false,
   theme: "dark",
+  products: defaultProducts,
 
   initTheme: () => {
     const saved = getSavedTheme();
@@ -142,4 +148,17 @@ export const useStore = create<StoreState>((set, get) => ({
     const message = `Ol\u00e1! Tenho interesse nestes itens que vi no site:\n\n${items}\n\nTotal: R$${total.toLocaleString("pt-BR")}\n\nPodemos negociar?`;
     return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   },
+
+  addProduct: (product) =>
+    set((state) => ({ products: [...state.products, product] })),
+
+  updateProduct: (product) =>
+    set((state) => ({
+      products: state.products.map((p) => (p.id === product.id ? product : p)),
+    })),
+
+  deleteProduct: (productId) =>
+    set((state) => ({
+      products: state.products.filter((p) => p.id !== productId),
+    })),
 }));

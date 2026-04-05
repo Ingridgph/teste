@@ -178,3 +178,6 @@ export const products: Product[] = [
     description: "1m - Original Apple",
   },
 ];
+
+// Alias for use as initial store data
+export const defaultProducts = products;
