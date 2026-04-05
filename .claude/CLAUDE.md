@@ -36,11 +36,13 @@ Este projeto utiliza agentes especializados por funcionalidade. Consulte `.claud
 - `theme.md` — Sistema de temas (light/dark)
 - `3d-hero.md` — Modelo 3D interativo e hero sections
 - `animations.md` — Animacoes GSAP e Framer Motion
-- `products.md` — Catalogo, grid, carrossel e filtros
+- `products.md` — Catalogo, grid, carrossel, filtros e pagina /produtos
 - `cart-whatsapp.md` — Carrinho de compras e integracao WhatsApp
 - `forms.md` — Formularios e validacao
 - `seo.md` — SEO, metadata e acessibilidade
 - `styling.md` — Design system, Tailwind e CSS Variables
-- `state.md` — Estado global Zustand
+- `state.md` — Estado global Zustand (products, categories, cart, theme)
+- `admin.md` — Painel administrativo (CRUD produtos/categorias, comentarios, soft delete)
+- `routing.md` — Rotas e paginas (/, /contato, /produtos, /admin)
 
 @AGENTS.md
