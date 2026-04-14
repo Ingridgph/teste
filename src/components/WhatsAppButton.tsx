@@ -20,7 +20,7 @@ export default function WhatsAppButton() {
     gsap.fromTo(
       buttonRef.current,
       { scale: 0, opacity: 0, rotation: -20 },
-      { scale: 1, opacity: 1, rotation: 0, duration: 0.7, ease: "elastic.out(1, 0.5)", delay: 1.5 }
+      { scale: 1, opacity: 1, rotation: 0, duration: 0.7, ease: "elastic.out(1, 0.5)", delay: 0.2 }
     );
   }, []);
 
@@ -33,8 +33,8 @@ export default function WhatsAppButton() {
         {
           scale: 1,
           y: 0,
-          duration: 0.5,
-          ease: "elastic.out(1, 0.3)",
+          duration: 0.25,
+          ease: "elastic.out(1, 0.4)",
         }
       );
       setExpanded(true);
@@ -51,11 +51,10 @@ export default function WhatsAppButton() {
       href={generateWhatsAppLink()}
       target="_blank"
       rel="noopener noreferrer"
-      className={`fixed bottom-6 right-6 z-[90] flex items-center gap-2.5 px-5 py-3.5 rounded-full font-semibold text-white shadow-2xl shadow-green-900/40 transition-all duration-500 hover:scale-105 hover:shadow-green-500/30 active:scale-95 ${
-        count > 0
-          ? "bg-gradient-to-r from-green-600 to-green-500"
-          : "bg-green-600 hover:bg-green-500"
-      }`}
+      className={`fixed bottom-6 right-6 z-[90] flex items-center gap-2.5 px-5 py-3.5 rounded-full font-semibold text-white shadow-2xl shadow-green-900/40 transition-all duration-100 hover:scale-105 hover:shadow-green-500/30 active:scale-95 ${count > 0
+        ? "bg-gradient-to-r from-green-600 to-green-500"
+        : "bg-green-600 hover:bg-green-500"
+        }`}
       style={{
         minWidth: count > 0 && expanded ? "260px" : count > 0 ? "180px" : "auto",
       }}

@@ -562,7 +562,8 @@ export default function ProductGrid() {
             className="shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-105"
             style={{
               backgroundColor: "var(--card-bg)",
-              border: "1px solid var(--card-border)",
+              border: "1px solid var(--accent)",
+              boxShadow: "0 4px 14px var(--accent-glow)",
               color: "var(--foreground)",
             }}
           >

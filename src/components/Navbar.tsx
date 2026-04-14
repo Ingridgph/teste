@@ -10,9 +10,6 @@ export default function Navbar() {
   const logoRef = useRef<HTMLAnchorElement>(null);
   const linksRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
-  const [hidden, setHidden] = useState(false);
-  const lastScrollY = useRef(0);
-
   // Entrance animation
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -29,27 +26,6 @@ export default function Navbar() {
     });
     return () => ctx.revert();
   }, []);
-
-  // Hide on scroll down, show on scroll up
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentY = window.scrollY;
-      if (currentY > lastScrollY.current && currentY > 100) {
-        setHidden(true);
-      } else {
-        setHidden(false);
-      }
-      lastScrollY.current = currentY;
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Animate hide/show
-  useEffect(() => {
-    if (!navRef.current) return;
-    gsap.to(navRef.current, { y: hidden ? -80 : 0, duration: 0.4, ease: "power2.out" });
-  }, [hidden]);
 
   return (
     <nav
