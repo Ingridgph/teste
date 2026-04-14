@@ -322,22 +322,6 @@ function SingleCarousel({ items }: { items: Product[] }) {
           })}
         </div>
 
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 z-20"
-          style={{
-            width: "120px",
-            background:
-              "linear-gradient(to right, var(--background) 30%, transparent)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-20"
-          style={{
-            width: "120px",
-            background:
-              "linear-gradient(to left, var(--background) 30%, transparent)",
-          }}
-        />
 
         {total > 1 && (
           <button
