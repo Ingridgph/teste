@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { products as defaultProducts, categories as defaultCategoryNames } from "@/data/products";
 
 export interface Comment {
@@ -105,7 +106,9 @@ const initialCategories: Category[] = defaultCategoryNames
     active: true,
   }));
 
-export const useStore = create<StoreState>((set, get) => ({
+export const useStore = create<StoreState>()(
+  persist(
+    (set, get) => ({
   cart: [],
   searchQuery: "",
   activeCategory: "Todos",
@@ -301,4 +304,10 @@ export const useStore = create<StoreState>((set, get) => ({
       ),
     }));
   },
-}));
+    }),
+    {
+      name: "store-cart",
+      partialize: (state) => ({ cart: state.cart }),
+    }
+  )
+);
