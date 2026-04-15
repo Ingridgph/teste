@@ -280,7 +280,7 @@ function SingleCarousel({ items }: { items: Product[] }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="relative" style={{ padding: "2rem 0" }}>
+      <div className="relative overflow-hidden" style={{ padding: "2rem 0" }}>
         <div
           ref={trackRef}
           className="flex items-center justify-center gap-5 transition-all duration-500"
