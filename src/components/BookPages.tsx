@@ -6,12 +6,14 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* ─── iPhone 3D mouse-tracking (hidden on <500px) ─── */
-function IPhoneModel() {
+/* ─── iPhone 3D mouse-tracking ─── */
+function IPhoneModel({ compact = false }: { compact?: boolean }) {
   const phoneRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
+  // Mouse 3D interaction apenas no desktop
   useEffect(() => {
+    if (compact) return;
     const wrap = wrapRef.current;
     const phone = phoneRef.current;
     if (!wrap || !phone) return;
@@ -32,44 +34,66 @@ function IPhoneModel() {
       window.removeEventListener("mousemove", move);
       wrap.removeEventListener("mouseleave", leave);
     };
-  }, []);
+  }, [compact]);
+
+  const W = compact ? 120 : 220;
+  const H = compact ? 252 : 460;
+  const radius = compact ? "1.8rem" : "3rem";
+  const innerRadius = compact ? "1.5rem" : "2.6rem";
+  const inset = compact ? 4 : 6;
+  const diW = compact ? 56 : 90;
+  const diH = compact ? 18 : 32;
 
   return (
     <div ref={wrapRef} className="flex items-center justify-center" style={{ perspective: "1200px" }}>
       <div ref={phoneRef} className="relative" style={{ transformStyle: "preserve-3d" }}>
         <div
-          className="relative overflow-hidden rounded-[3rem]"
+          className="relative overflow-hidden"
           style={{
-            width: "220px",
-            height: "460px",
+            width: `${W}px`,
+            height: `${H}px`,
+            borderRadius: radius,
             background: "linear-gradient(145deg,#1a1a2e,#0d0d1a 50%,#16213e)",
             border: "3px solid rgba(255,255,255,0.08)",
             boxShadow: "0 40px 100px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.1)",
           }}
         >
-          <div className="absolute left-1/2 top-3 z-10 flex h-8 w-[90px] -translate-x-1/2 items-center justify-center gap-2 rounded-full bg-black">
-            <div className="h-3 w-3 rounded-full border border-zinc-700 bg-zinc-800" />
-            <div className="h-2 w-2 rounded-full bg-zinc-700" />
+          <div
+            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center justify-center gap-1.5 rounded-full bg-black"
+            style={{ width: `${diW}px`, height: `${diH}px` }}
+          >
+            <div className="h-2.5 w-2.5 rounded-full border border-zinc-700 bg-zinc-800" />
+            <div className="h-1.5 w-1.5 rounded-full bg-zinc-700" />
           </div>
-          <div className="absolute inset-[6px] overflow-hidden rounded-[2.6rem]">
+          <div
+            className="absolute overflow-hidden"
+            style={{ inset: `${inset}px`, borderRadius: innerRadius }}
+          >
             <div className="absolute inset-0" style={{ background: "linear-gradient(135deg,#0c1929,#122a40 25%,#0f3651 50%,#0c1929 75%,#122a40)", backgroundSize: "400% 400%", animation: "heroScreenGlow 8s ease-in-out infinite" }} />
             <div className="absolute inset-0" style={{ background: "linear-gradient(105deg,transparent 30%,rgba(255,255,255,0.12) 45%,transparent 55%)", animation: "heroScreenShine 5s ease-in-out infinite" }} />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6">
-              <div className="h-11 w-11 animate-pulse rounded-2xl border border-[#2596be]/30 bg-[#2596be]/20" />
-              <div className="h-2 w-20 rounded-full bg-white/10" />
-              <div className="h-2 w-14 rounded-full bg-white/5" />
-              <div className="mt-3 grid grid-cols-3 gap-2.5">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
+              <div className="animate-pulse rounded-xl border border-[#2596be]/30 bg-[#2596be]/20" style={{ width: compact ? 28 : 44, height: compact ? 28 : 44 }} />
+              <div className="rounded-full bg-white/10" style={{ width: compact ? 48 : 80, height: 6 }} />
+              <div className="rounded-full bg-white/5" style={{ width: compact ? 36 : 56, height: 5 }} />
+              <div className="mt-2 grid grid-cols-3" style={{ gap: compact ? 6 : 10 }}>
                 {[...Array(9)].map((_, i) => (
-                  <div key={i} className="h-9 w-9 rounded-xl border border-white/5 bg-white/5" />
+                  <div
+                    key={i}
+                    className="rounded-xl border border-white/5 bg-white/5"
+                    style={{ width: compact ? 24 : 36, height: compact ? 24 : 36 }}
+                  />
                 ))}
               </div>
             </div>
           </div>
-          <div className="absolute right-[-3px] top-[110px] h-[50px] w-[3px] rounded-r-sm bg-zinc-600" />
-          <div className="absolute left-[-3px] top-[90px] h-[28px] w-[3px] rounded-l-sm bg-zinc-600" />
-          <div className="absolute left-[-3px] top-[130px] h-[50px] w-[3px] rounded-l-sm bg-zinc-600" />
+          {/* Botoes laterais */}
+          <div className="absolute right-[-3px] rounded-r-sm bg-zinc-600" style={{ top: compact ? 65 : 110, height: compact ? 30 : 50, width: 3 }} />
+          <div className="absolute left-[-3px] rounded-l-sm bg-zinc-600" style={{ top: compact ? 53 : 90, height: compact ? 17 : 28, width: 3 }} />
+          <div className="absolute left-[-3px] rounded-l-sm bg-zinc-600" style={{ top: compact ? 78 : 130, height: compact ? 30 : 50, width: 3 }} />
         </div>
-        <div className="absolute -bottom-6 left-1/2 h-14 w-44 -translate-x-1/2 rounded-full blur-3xl" style={{ backgroundColor: "var(--accent-glow)" }} />
+        {!compact && (
+          <div className="absolute -bottom-6 left-1/2 h-14 w-44 -translate-x-1/2 rounded-full blur-3xl" style={{ backgroundColor: "var(--accent-glow)" }} />
+        )}
       </div>
     </div>
   );
@@ -104,12 +128,13 @@ const featureIcons = [
 
 /* ─── Main component ─── */
 export default function BookPages() {
-  const [isMobile, setIsMobile] = useState(false);
+  // Exibe o modelo apenas em desktop (>= 1024px) — mesmo breakpoint do layout em linha
+  const [showPhone, setShowPhone] = useState(false);
   const page1Ref = useRef<HTMLDivElement>(null);
   const page2Ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 500);
+    const check = () => setShowPhone(window.innerWidth >= 1024);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
@@ -117,18 +142,26 @@ export default function BookPages() {
 
   // Simple entrance animations (no pin, no overlap)
   useEffect(() => {
+    // Esconde imediatamente para evitar flash antes do GSAP rodar
+    if (page1Ref.current) {
+      gsap.set(page1Ref.current.querySelectorAll(".anim"), { opacity: 0, y: 30 });
+    }
+    if (page2Ref.current) {
+      gsap.set(page2Ref.current.querySelectorAll(".anim"), { opacity: 0, y: 40 });
+    }
+
     const ctx = gsap.context(() => {
       // Page 1 entrance
       if (page1Ref.current) {
         const els = page1Ref.current.querySelectorAll(".anim");
-        gsap.fromTo(els, { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.1, duration: 0.9, ease: "power3.out", delay: 0.2 });
+        gsap.to(els, { opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: "power3.out", delay: 0.1 });
       }
 
       // Page 2 scroll-triggered entrance
       if (page2Ref.current) {
         const els = page2Ref.current.querySelectorAll(".anim");
-        gsap.fromTo(els, { opacity: 0, y: 40 }, {
-          opacity: 1, y: 0, stagger: 0.1, duration: 0.8, ease: "power3.out",
+        gsap.to(els, {
+          opacity: 1, y: 0, stagger: 0.1, duration: 0.7, ease: "power3.out",
           scrollTrigger: { trigger: page2Ref.current, start: "top 75%", toggleActions: "play none none none" },
         });
       }
@@ -147,57 +180,101 @@ export default function BookPages() {
       {/* ═══ PAGE 1: Hero ═══ */}
       <section
         ref={page1Ref}
-        className="relative flex min-h-screen items-center overflow-hidden"
+        className="relative flex lg:min-h-screen items-start lg:items-center overflow-hidden"
         style={{ backgroundColor: "var(--background)" }}
       >
-        {/* BG */}
+        {/* BG — brilho reduzido no mobile */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-[-10%] top-[15%] h-[400px] w-[400px] rounded-full blur-[150px]" style={{ backgroundColor: "var(--accent-soft)" }} />
-          <div className="absolute bottom-[10%] right-[-5%] h-[350px] w-[350px] rounded-full opacity-50 blur-[120px]" style={{ backgroundColor: "var(--accent-soft)" }} />
+          <div className="absolute left-[-10%] top-[15%] h-[200px] w-[200px] rounded-full opacity-30 blur-[100px] lg:h-[400px] lg:w-[400px] lg:opacity-100 lg:blur-[150px]" style={{ backgroundColor: "var(--accent-soft)" }} />
+          <div className="absolute bottom-[10%] right-[-5%] h-[150px] w-[150px] rounded-full opacity-20 blur-[80px] lg:h-[350px] lg:w-[350px] lg:opacity-50 lg:blur-[120px]" style={{ backgroundColor: "var(--accent-soft)" }} />
         </div>
 
-        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center gap-10 px-6 py-28 lg:flex-row lg:gap-20 lg:py-0">
-          {/* Left: Text */}
-          <div className="flex flex-1 flex-col items-center text-center lg:items-start lg:text-left">
-            <h1 className="anim text-5xl font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl" style={{ color: "var(--foreground)" }}>
-              Noleto
-              <br />
-              <span style={{ color: "var(--accent)" }}>iPhones</span>
-            </h1>
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
+          {showPhone ? (
+            /* ── Desktop: título à esquerda, modelo à direita ── */
+            <div className="flex min-h-screen items-center gap-16 xl:gap-24">
+              <div className="flex flex-[1.2] flex-col items-start text-left">
+                <h1
+                  className="anim text-7xl font-bold leading-[1.05] tracking-tighter xl:text-8xl"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  Noleto
+                  <br />
+                  <span style={{ color: "var(--accent)" }}>iPhones</span>
+                </h1>
 
-            <p className="anim mt-6 max-w-md text-base leading-relaxed sm:text-lg" style={{ color: "var(--muted)" }}>
-              Tecnologia premium ao seu alcance. Os melhores iPhones e acessorios Apple com garantia e procedencia.
-            </p>
+                <p className="anim mt-6 max-w-sm text-base leading-relaxed xl:text-lg" style={{ color: "var(--muted)" }}>
+                  Tecnologia premium ao seu alcance. Os melhores iPhones e acessórios Apple com garantia e procedência.
+                </p>
 
-            <div className="anim mt-8 flex flex-wrap items-center gap-3">
-              <a
-                href="#vitrine"
-                className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 sm:px-8 sm:py-4 sm:text-base"
-                style={{ backgroundColor: "var(--accent)", boxShadow: "0 0 30px var(--accent-glow)" }}
-              >
-                Ver Produtos
-                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
-              <a
-                href="/contato"
-                className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-medium transition-all duration-300 hover:scale-105 sm:px-8 sm:py-4 sm:text-base"
-                style={{ border: "1px solid var(--card-border)", color: "var(--foreground)" }}
-              >
-                Fale Conosco
-              </a>
+                <div className="anim mt-8 flex flex-wrap items-center gap-3">
+                  <a
+                    href="#vitrine"
+                    className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-semibold text-white transition-all duration-300 hover:scale-105"
+                    style={{ backgroundColor: "var(--accent)", boxShadow: "0 0 30px var(--accent-glow)" }}
+                  >
+                    Ver Produtos
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </a>
+                  <a
+                    href="/contato"
+                    className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-medium transition-all duration-300 hover:scale-105"
+                    style={{ border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+                  >
+                    Fale Conosco
+                  </a>
+                </div>
+
+                <div className="anim mt-6 flex items-center gap-3">
+                  {socials.map((s) => <SocialIcon key={s.label} {...s} />)}
+                </div>
+              </div>
+
+              <div className="anim flex flex-1 items-center justify-center">
+                <IPhoneModel compact={false} />
+              </div>
             </div>
+          ) : (
+            /* ── Mobile/tablet: apenas texto centralizado ── */
+            <div className="flex min-h-screen flex-col items-center justify-center py-28 text-center">
+              <h1
+                className="anim text-5xl font-bold tracking-tighter sm:text-6xl md:text-7xl"
+                style={{ color: "var(--foreground)" }}
+              >
+                Noleto
+                <br />
+                <span style={{ color: "var(--accent)" }}>iPhones</span>
+              </h1>
 
-            <div className="anim mt-6 flex items-center gap-3">
-              {socials.map((s) => <SocialIcon key={s.label} {...s} />)}
-            </div>
-          </div>
+              <p className="anim mt-6 max-w-md text-base leading-relaxed sm:text-lg" style={{ color: "var(--muted)" }}>
+                Tecnologia premium ao seu alcance. Os melhores iPhones e acessórios Apple com garantia e procedência.
+              </p>
 
-          {/* Right: Phone (hidden on mobile < 500px) */}
-          {!isMobile && (
-            <div className="anim flex flex-1 items-center justify-center">
-              <IPhoneModel />
+              <div className="anim mt-8 flex flex-wrap items-center justify-center gap-3">
+                <a
+                  href="#vitrine"
+                  className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 sm:px-8 sm:py-4 sm:text-base"
+                  style={{ backgroundColor: "var(--accent)", boxShadow: "0 0 30px var(--accent-glow)" }}
+                >
+                  Ver Produtos
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+                <a
+                  href="/contato"
+                  className="inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-medium transition-all duration-300 hover:scale-105 sm:px-8 sm:py-4 sm:text-base"
+                  style={{ border: "1px solid var(--card-border)", color: "var(--foreground)" }}
+                >
+                  Fale Conosco
+                </a>
+              </div>
+
+              <div className="anim mt-6 flex items-center gap-3">
+                {socials.map((s) => <SocialIcon key={s.label} {...s} />)}
+              </div>
             </div>
           )}
         </div>
@@ -206,7 +283,7 @@ export default function BookPages() {
       {/* ═══ PAGE 2: Features ═══ */}
       <section
         ref={page2Ref}
-        className="relative flex min-h-screen items-center overflow-hidden"
+        className="relative flex lg:min-h-screen items-center overflow-hidden"
         style={{ backgroundColor: "var(--background)" }}
       >
         <div className="pointer-events-none absolute inset-0">

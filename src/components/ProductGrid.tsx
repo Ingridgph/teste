@@ -442,69 +442,27 @@ export default function ProductGrid() {
   useEffect(() => {
     if (!sectionRef.current) return;
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".vitrine-title",
-        { opacity: 0, x: -60 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".vitrine-title",
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-      gsap.fromTo(
-        ".vitrine-subtitle",
-        { opacity: 0, x: -40 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          delay: 0.15,
-          scrollTrigger: {
-            trigger: ".vitrine-title",
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-      gsap.fromTo(
-        ".vitrine-tab",
-        { opacity: 0, y: 20, scale: 0.9 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          stagger: 0.06,
-          duration: 0.5,
-          ease: "back.out(1.4)",
-          scrollTrigger: {
-            trigger: ".vitrine-tabs",
-            start: "top 90%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-      gsap.fromTo(
-        ".vitrine-search",
-        { opacity: 0, width: 0 },
-        {
-          opacity: 1,
-          width: "auto",
-          duration: 0.6,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".vitrine-tabs",
-            start: "top 90%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
+      // Titulo + subtitulo em timeline sincronizada
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".vitrine-title",
+          start: "top 88%",
+          toggleActions: "play none none none",
+        },
+      });
+      tl.fromTo(".vitrine-title", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" })
+        .fromTo(".vitrine-subtitle", { opacity: 0, x: -25 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, "-=0.25");
+
+      // Tabs + search juntos
+      const tl2 = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".vitrine-tabs",
+          start: "top 92%",
+          toggleActions: "play none none none",
+        },
+      });
+      tl2.fromTo(".vitrine-tab", { opacity: 0, y: 15, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, stagger: 0.04, duration: 0.35, ease: "back.out(1.4)" })
+         .fromTo(".vitrine-search", { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }, "-=0.2");
     }, sectionRef);
     return () => ctx.revert();
   }, []);
